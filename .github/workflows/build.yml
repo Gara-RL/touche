@@ -1,0 +1,39 @@
+name: Construire l'APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Compiler l'app
+        run: gradle assembleDebug --stacktrace
+
+      - name: Renommer l'APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk Touche.apk
+
+      - name: Publier l'APK (téléchargeable depuis le téléphone)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: Touché v0.1.${{ github.run_number }}
+          body: "Télécharge **Touche.apk** ci-dessous depuis ton téléphone Android, puis ouvre-le pour l'installer."
+          files: Touche.apk
+          make_latest: true
